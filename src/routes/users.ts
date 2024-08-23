@@ -46,11 +46,11 @@ router.post(
         return res.status(400).json({ message: "User already exists" });
       }
 
-      user = new User(req.body);
-      await user.save();
+      const newUser = new User({ ...req.body, isAdmin: req.body.isAdmin || false });
+      await newUser.save();
 
       const token = jwt.sign(
-        { userId: user.id },
+        { userId: newUser.id },
         process.env.JWT_SECRET_KEY as string,
         {
           expiresIn: "1d",
