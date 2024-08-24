@@ -6,8 +6,8 @@ interface IBooking extends Document {
   roomId: Schema.Types.ObjectId;
   firstName: string;
   lastName: string;
-  startDate: Date;
-  endDate: Date;
+  checkIn: Date; // Updated field
+  checkOut: Date; // Updated field
   breakFastIncluded: boolean;
   currency: string;
   totalPrice: number;
@@ -22,8 +22,8 @@ const bookingSchema = new Schema<IBooking>({
   roomId: { type: Schema.Types.ObjectId, ref: 'Room', required: true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
+  checkIn: { type: Date, required: true }, // Updated field
+  checkOut: { type: Date, required: true }, // Updated field
   breakFastIncluded: { type: Boolean, default: false },
   currency: { type: String, required: true },
   totalPrice: { type: Number, required: true },
