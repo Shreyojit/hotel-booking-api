@@ -15,6 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const Booking_1 = __importDefault(require("../models/Booking")); // Adjust import based on your file structure
 const stripe_1 = __importDefault(require("stripe"));
+const Hotel_1 = __importDefault(require("../models/Hotel"));
+const Room_1 = __importDefault(require("../models/Room"));
+const verifyAdmin_1 = __importDefault(require("../middleware/verifyAdmin"));
 const router = express_1.default.Router();
 const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY);
 // Utility function to convert DD/MM/YYYY to ISO 8601 format
@@ -23,19 +26,43 @@ const convertDateToISO = (dateStr) => {
     return new Date(year, month - 1, day).toISOString();
 };
 // ** Create a Booking **
-router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/:hotelId/:roomId/booking', verifyAdmin_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { hotelId, roomId } = req.params; // Extract hotelId and roomId from the URL parameters
+    const { firstName, lastName, checkIn, checkOut, breakFastIncluded, currency, totalPrice, paymentStatus, paymentIntentId, } = req.body; // Extract other booking details from the request body
     try {
-        const booking = new Booking_1.default(req.body);
+        // Create a new booking with the extracted data
+        const booking = new Booking_1.default({
+            hotelId,
+            roomId,
+            firstName,
+            lastName,
+            checkIn,
+            checkOut,
+            breakFastIncluded,
+            currency,
+            totalPrice,
+            paymentStatus,
+            paymentIntentId,
+        });
+        // Save the booking to the database
         yield booking.save();
+        // Update the Room document to include the new booking
+        yield Room_1.default.findByIdAndUpdate(roomId, {
+            $push: { bookings: booking._id },
+        });
+        // Update the Hotel document to include the new booking
+        yield Hotel_1.default.findByIdAndUpdate(hotelId, {
+            $push: { bookings: booking._id },
+        });
         res.status(201).json(booking);
     }
     catch (error) {
         console.log(error);
-        res.status(500).send({ message: "Something went wrong" });
+        res.status(500).send({ message: 'Something went wrong' });
     }
 }));
 // ** Delete a Booking **
-router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete('booking/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
         const booking = yield Booking_1.default.findByIdAndDelete(id);
@@ -50,7 +77,7 @@ router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 // ** Edit a Booking **
-router.put('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put('booking/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
         const booking = yield Booking_1.default.findByIdAndUpdate(id, req.body, { new: true });
@@ -65,7 +92,7 @@ router.put('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 }));
 // ** Find All Bookings for a Specific Hotel **
-router.get('/:hotelId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/:hotelId/bookings', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { hotelId } = req.params;
         const bookings = yield Booking_1.default.find({ hotelId });
@@ -77,7 +104,7 @@ router.get('/:hotelId', (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 }));
 // ** Find All Bookings for a Specific Room **
-router.get('/room/:roomId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/room/:roomId/bookings', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { roomId } = req.params;
         const bookings = yield Booking_1.default.find({ roomId });
@@ -89,7 +116,7 @@ router.get('/room/:roomId', (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 }));
 // Route to create a Payment Intent
-router.post('/:bookingId/payment', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('booking/:bookingId/payment', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { bookingId } = req.params;
     const { amount } = req.body; // Amount in cents
     try {

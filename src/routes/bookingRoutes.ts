@@ -1,6 +1,10 @@
 import express, { Request, Response } from 'express';
 import Booking from '../models/Booking';  // Adjust import based on your file structure
 import Stripe from 'stripe';
+import Hotel from '../models/Hotel';
+import Room from '../models/Room';
+import verifyToken from '../middleware/auth';
+import verifyTokenAdmin from '../middleware/verifyAdmin';
 
 const router = express.Router();
 
@@ -13,20 +17,58 @@ const convertDateToISO = (dateStr: string) => {
   };
 
 // ** Create a Booking **
-router.post('/', async (req: Request, res: Response) => {
+router.post('/:hotelId/:roomId/booking', verifyTokenAdmin,async (req: Request, res: Response) => {
+  const { hotelId, roomId } = req.params; // Extract hotelId and roomId from the URL parameters
+  const {
+    firstName,
+    lastName,
+    checkIn,
+    checkOut,
+    breakFastIncluded,
+    currency,
+    totalPrice,
+    paymentStatus,
+    paymentIntentId,
+  } = req.body; // Extract other booking details from the request body
+
   try {
-    const booking = new Booking(req.body);
+    // Create a new booking with the extracted data
+    const booking = new Booking({
+      hotelId,
+      roomId,
+      firstName,
+      lastName,
+      checkIn,
+      checkOut,
+      breakFastIncluded,
+      currency,
+      totalPrice,
+      paymentStatus,
+      paymentIntentId,
+    });
+  
+  // Save the booking to the database
     await booking.save();
+
+    // Update the Room document to include the new booking
+    await Room.findByIdAndUpdate(roomId, {
+      $push: { bookings: booking._id },
+    });
+
+    // Update the Hotel document to include the new booking
+    await Hotel.findByIdAndUpdate(hotelId, {
+      $push: { bookings: booking._id },
+    });
+
     res.status(201).json(booking);
   } catch (error) {
     console.log(error);
-    res.status(500).send({ message: "Something went wrong" });
+    res.status(500).send({ message: 'Something went wrong' });
   }
-  }
-);
+});
 
 // ** Delete a Booking **
-router.delete('/:id', async (req, res) => {
+router.delete('booking/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const booking = await Booking.findByIdAndDelete(id);
@@ -42,7 +84,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // ** Edit a Booking **
-router.put('/:id', async (req, res) => {
+router.put('booking/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const booking = await Booking.findByIdAndUpdate(id, req.body, { new: true });
@@ -58,7 +100,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // ** Find All Bookings for a Specific Hotel **
-router.get('/:hotelId', async (req, res) => {
+router.get('/:hotelId/bookings', async (req, res) => {
   try {
     const { hotelId } = req.params;
     const bookings = await Booking.find({ hotelId });
@@ -71,7 +113,7 @@ router.get('/:hotelId', async (req, res) => {
 });
 
 // ** Find All Bookings for a Specific Room **
-router.get('/room/:roomId', async (req, res) => {
+router.get('/room/:roomId/bookings', async (req, res) => {
   try {
     const { roomId } = req.params;
     const bookings = await Booking.find({ roomId });
@@ -85,7 +127,7 @@ router.get('/room/:roomId', async (req, res) => {
 
 
 // Route to create a Payment Intent
-router.post('/:bookingId/payment', async (req: Request, res: Response) => {
+router.post('booking/:bookingId/payment', async (req: Request, res: Response) => {
     const { bookingId } = req.params;
     const { amount } = req.body; // Amount in cents
   
