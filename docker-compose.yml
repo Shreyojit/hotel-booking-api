@@ -7,7 +7,16 @@ services:
       - "7000:7000"
     environment:
       - REDIS_URL=redis://redis:6379
-      # other environment variables
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - NODE_ENV=${NODE_ENV}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - PUB_KEY=${PUB_KEY}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      
     depends_on:
       - mongo
       - redis
