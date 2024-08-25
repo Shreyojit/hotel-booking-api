@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-booking-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hotel-booking-api
+  template:
+    metadata:
+      labels:
+        app: hotel-booking-api
+    spec:
+      containers:
+      - name: hotel-booking-api
+        image: shreyojit/hotel-booking-api:latest
+        ports:
+        - containerPort: 7000
+        envFrom:
+        - configMapRef:
+            name: app-config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: app-config
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
