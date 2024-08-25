@@ -1,0 +1,24 @@
+| Endpoint                                | Method | Description                                                                                           |
+|-----------------------------------------|--------|-------------------------------------------------------------------------------------------------------|
+| /api/auth/register                      | POST   | Registers a new user and returns an authentication token.                                             |
+| /api/auth/me                            | GET    | Fetches the details of the currently authenticated user.                                              |
+| /api/users                              | GET    | Fetches a list of all users.                                                                         |
+| /api/users/:id                          | GET    | Fetches details of a specific user by ID.                                                            |
+| /api/users/:id                          | PUT    | Updates a specific user's details by ID.                                                             |
+| /api/users/:id                          | DELETE | Deletes a specific user by ID.                                                                       |
+| /api/hotels                             | POST   | Creates a new hotel with uploaded images and hotel details.                                          |
+| /api/hotels                             | GET    | Fetches a list of all hotels.                                                                        |
+| /api/hotels/:id                         | GET    | Fetches details of a specific hotel by ID.                                                           |
+| /api/hotels/:id                         | PUT    | Updates a specific hotel's details by ID with uploaded images.                                        |
+| /api/hotels/:id                         | DELETE | Deletes a specific hotel by ID.                                                                      |
+| /api/rooms                              | POST   | Creates a new room with uploaded images and room details.                                            |
+| /api/rooms                              | GET    | Fetches a list of all rooms.                                                                         |
+| /api/rooms/:id                          | GET    | Fetches details of a specific room by ID.                                                            |
+| /api/rooms/:id                          | PUT    | Updates a specific room's details by ID with uploaded images.                                        |
+| /api/rooms/:id                          | DELETE | Deletes a specific room by ID.                                                                       |
+| /api/:hotelId/:roomId/booking            | POST   | Creates a new booking for a specific hotel and room, and updates related documents.                   |
+| /api/booking/:id                        | DELETE | Deletes a specific booking by ID.                                                                    |
+| /api/booking/:id                        | PUT    | Updates a specific booking's details by ID.                                                          |
+| /api/:hotelId/bookings                  | GET    | Fetches all bookings for a specific hotel by hotel ID.                                               |
+| /api/room/:roomId/bookings              | GET    | Fetches all bookings for a specific room by room ID.                                                  |
+| /api/booking/:bookingId/payment         | POST   | Creates a payment intent for a specific booking and updates the booking with payment details.        |
